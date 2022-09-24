@@ -21,7 +21,7 @@ add_subdirectory(xll)
 add_library(
         XLSteam
         SHARED
-        ${CMAKE_CURRENT_SOURCE_DIR}/xll_template.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/XLSteamFrontend.cpp
 )
 
 #==============================================================================

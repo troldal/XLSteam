@@ -265,22 +265,6 @@ namespace XLSteam {
             return std::nan("0");
         }
     }
-
-    double XLSteamPU(double Pressure, double InternalEnergy, const char* PropID) {
-
-        if (Pressure < 0.0 || Pressure > 100000000.0) return std::nan("0");
-
-        try {
-            if (Pressure <= IF97::get_pcrit() &&
-                (IF97::Q_pumass(Pressure, InternalEnergy) < 1.0 || IF97::Q_pumass(Pressure, InternalEnergy) > 0.0))
-                return XLSteamPX(Pressure, IF97::Q_pumass(Pressure, InternalEnergy), PropID);
-            return XLSteamPT(Pressure, IF97::T_psmass(Pressure, Entropy), PropID);
-        }
-        catch (...) {
-            return std::nan("0");
-        }
-
-    }
 }
 
 

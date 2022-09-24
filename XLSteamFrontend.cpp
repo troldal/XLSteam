@@ -1,7 +1,7 @@
 ﻿// xll_template.cpp - Sample xll project.
-#include <cmath> // for double tgamma(double)
-#include "xll_template.h"
+#include "XLSteamFrontend.h"
 #include "XLSteamBackend.h"
+#include <cmath>    // for double tgamma(double)
 
 using namespace xll;
 
