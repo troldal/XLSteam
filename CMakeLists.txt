@@ -2,7 +2,7 @@
 # Preamble
 #==============================================================================
 cmake_minimum_required(VERSION 3.20)
-project(Xll.Template)
+project(XLSteam)
 
 #==============================================================================
 # Set compiler settings
@@ -19,7 +19,7 @@ add_subdirectory(xll)
 # Add xll template library and set source file paths
 #==============================================================================
 add_library(
-        xlltemplate
+        XLSteam
         SHARED
         ${CMAKE_CURRENT_SOURCE_DIR}/xll_template.cpp
 )
@@ -27,6 +27,6 @@ add_library(
 #==============================================================================
 # Set Xll library properties and compile options
 #==============================================================================
-target_compile_options(xlltemplate PRIVATE "/J" "/utf-8")
-target_link_libraries(xlltemplate PRIVATE xlcall xll)
-set_target_properties(xlltemplate PROPERTIES OUTPUT_NAME "xll_template" SUFFIX ".xll")
+target_compile_options(XLSteam PRIVATE "/J" "/utf-8")
+target_link_libraries(XLSteam PRIVATE xlcall xll)
+set_target_properties(XLSteam PROPERTIES OUTPUT_NAME "XLSteam" SUFFIX ".xll")

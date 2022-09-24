@@ -1,8 +1,99 @@
 ﻿// xll_template.cpp - Sample xll project.
 #include <cmath> // for double tgamma(double)
 #include "xll_template.h"
+#include "XLSteamBackend.h"
 
 using namespace xll;
+
+AddIn xai_XLSteam_PT(
+        Function(XLL_DOUBLE, "XLSteam_PT", "XLSTEAM.PT")
+        .Arguments({
+            Arg(XLL_DOUBLE, "P", "is the pressure in Pascal."),
+            Arg(XLL_DOUBLE, "T", "is the temperature in Kelvin."),
+            Arg(XLL_CSTRING4, "PropID", "is the ID of the property to be calculated.")
+        })
+        .FunctionHelp("Compute properties of steam/water at the given pressure and temperature.")
+        .Category("Engineering")
+        .HelpTopic("https://github.com/CoolProp/IF97")
+        .Documentation("The computation is done using CoolProp's implementation of the IAPWS Industrial Formulation 1997 (IF97).")
+        );
+
+double WINAPI XLSteam_PT(double P, double T, const char* PropID) {
+#pragma XLLEXPORT
+    return XLSteam::XLSteamPT(P, T, PropID);
+}
+
+AddIn xai_XLSteam_PX(
+        Function(XLL_DOUBLE, "XLSteam_PX", "XLSTEAM.PX")
+                .Arguments({
+                                   Arg(XLL_DOUBLE, "P", "is the pressure in Pascal."),
+                                   Arg(XLL_DOUBLE, "X", "is the vapor fraction"),
+                                   Arg(XLL_CSTRING4, "PropID", "is the ID of the property to be calculated.")
+                           })
+                .FunctionHelp("Compute saturation properties of steam/water at the given pressure and vapor fraction.")
+                .Category("Engineering")
+                .HelpTopic("https://github.com/CoolProp/IF97")
+                .Documentation("The computation is done using CoolProp's implementation of the IAPWS Industrial Formulation 1997 (IF97).")
+);
+
+double WINAPI XLSteam_PX(double P, double X, const char* PropID) {
+#pragma XLLEXPORT
+    return XLSteam::XLSteamPX(P, X, PropID);
+}
+
+AddIn xai_XLSteam_TX(
+        Function(XLL_DOUBLE, "XLSteam_TX", "XLSTEAM.TX")
+                .Arguments({
+                                   Arg(XLL_DOUBLE, "T", "is the temperature in Kelvin."),
+                                   Arg(XLL_DOUBLE, "X", "is the vapor fraction"),
+                                   Arg(XLL_CSTRING4, "PropID", "is the ID of the property to be calculated.")
+                           })
+                .FunctionHelp("Compute saturation properties of steam/water at the given temperature and vapor fraction.")
+                .Category("Engineering")
+                .HelpTopic("https://github.com/CoolProp/IF97")
+                .Documentation("The computation is done using CoolProp's implementation of the IAPWS Industrial Formulation 1997 (IF97).")
+);
+
+double WINAPI XLSteam_TX(double T, double X, const char* PropID) {
+#pragma XLLEXPORT
+    return XLSteam::XLSteamTX(T, X, PropID);
+}
+
+AddIn xai_XLSteam_PH(
+        Function(XLL_DOUBLE, "XLSteam_PH", "XLSTEAM.PH")
+                .Arguments({
+                                   Arg(XLL_DOUBLE, "P", "is the pressure in Pascal."),
+                                   Arg(XLL_DOUBLE, "H", "is the enthalpy in J/kg"),
+                                   Arg(XLL_CSTRING4, "PropID", "is the ID of the property to be calculated.")
+                           })
+                .FunctionHelp("Compute the properties of steam/water at the given pressure and enthalpy.")
+                .Category("Engineering")
+                .HelpTopic("https://github.com/CoolProp/IF97")
+                .Documentation("The computation is done using CoolProp's implementation of the IAPWS Industrial Formulation 1997 (IF97).")
+);
+
+double WINAPI XLSteam_PH(double P, double H, const char* PropID) {
+#pragma XLLEXPORT
+    return XLSteam::XLSteamPH(P, H, PropID);
+}
+
+AddIn xai_XLSteam_PS(
+        Function(XLL_DOUBLE, "XLSteam_PS", "XLSTEAM.PS")
+                .Arguments({
+                                   Arg(XLL_DOUBLE, "P", "is the pressure in Pascal."),
+                                   Arg(XLL_DOUBLE, "S", "is the entropy in J/kg-K"),
+                                   Arg(XLL_CSTRING4, "PropID", "is the ID of the property to be calculated.")
+                           })
+                .FunctionHelp("Compute the properties of steam/water at the given pressure and entropy.")
+                .Category("Engineering")
+                .HelpTopic("https://github.com/CoolProp/IF97")
+                .Documentation("The computation is done using CoolProp's implementation of the IAPWS Industrial Formulation 1997 (IF97).")
+);
+
+double WINAPI XLSteam_PS(double P, double S, const char* PropID) {
+#pragma XLLEXPORT
+    return XLSteam::XLSteamPS(P, S, PropID);
+}
 
 AddIn xai_tgamma(
 	// Return double, C++ name of function, Excel name.
@@ -21,7 +112,7 @@ AddIn xai_tgamma(
 The <i>Gamma</i> function is \(\Gamma(x) = \int_0^\infty t^{x - 1} e^{-t}\,dt\), \(x \ge 0\).
 If \(n\) is a natural number then \(\Gamma(n + 1) = n! = n(n - 1)\cdots 1\).
 <p>
-Any valid HTML using <a href="https://katex.org/" target="_blank">KaTeX</a> can 
+Any valid HTML using <a href="https://katex.org/" target="_blank">KaTeX</a> can
 be used for documentation.
 )xyzyx")
 );
