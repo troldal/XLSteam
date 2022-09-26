@@ -6,12 +6,15 @@
 #define XLSTEAM_XLSTEAMBACKEND_H
 
 #include "IF97.h"
+#include "numeric/roots.hpp"
 
 namespace XLSteam {
 
     enum class PropertyType {
         Pressure,
         Temperature,
+        SaturationPressure,
+        SaturationTemperature,
         Density,
         Volume,
         Enthalpy,
@@ -32,7 +35,7 @@ namespace XLSteam {
         Undefined
     };
 
-    PropertyType Property(const char* PropID) {
+    inline PropertyType Property(const char* PropID) {
 
         auto PropertyID = std::string(PropID);
         std::transform(PropertyID.begin(), PropertyID.end(), PropertyID.begin(), [](unsigned char c){ return std::toupper(c); });
@@ -42,6 +45,12 @@ namespace XLSteam {
 
         if (PropertyID == "T" || PropertyID == "TEMPERATURE")
             return PropertyType::Temperature;
+
+        if (PropertyID == "PSAT")
+            return PropertyType::SaturationPressure;
+
+        if (PropertyID == "TSAT")
+            return PropertyType::SaturationTemperature;
 
         if (PropertyID == "RHO" || PropertyID == "DENSITY")
             return PropertyType::Density;
@@ -97,7 +106,7 @@ namespace XLSteam {
         return PropertyType::Undefined;
     }
 
-    double XLSteamPT(double Pressure, double Temperature, const char* PropID) {
+    inline double XLSteamPT(double Pressure, double Temperature, const char* PropID) {
 
         if (Temperature < 273.16 || Temperature > 2273.15) return std::nan("0");
         if (Pressure < 0.0 || Pressure > 100000000.0) return std::nan("0");
@@ -110,6 +119,10 @@ namespace XLSteam {
                     return Pressure;
                 case PropertyType::Temperature:
                     return Temperature;
+                case PropertyType::SaturationPressure:
+                    return IF97::psat97(Temperature);
+                case PropertyType::SaturationTemperature:
+                    return IF97::Tsat97(Pressure);
                 case PropertyType::Density:
                     return IF97::rhomass_Tp(Temperature, Pressure);
                 case PropertyType::Volume:
@@ -157,7 +170,7 @@ namespace XLSteam {
         }
     }
 
-    double XLSteamPX(double Pressure, double Quality, const char* PropID) {
+    inline double XLSteamPX(double Pressure, double Quality, const char* PropID) {
 
         if (Pressure < 0.0 || Pressure > IF97::get_pcrit()) return std::nan("0");
         if (Quality < 0.0 || Quality > 1.0) return std::nan("0");
@@ -168,6 +181,10 @@ namespace XLSteam {
                 case PropertyType::Pressure:
                     return Pressure;
                 case PropertyType::Temperature:
+                    return IF97::Tsat97(Pressure);
+                case PropertyType::SaturationPressure:
+                    return Pressure;
+                case PropertyType::SaturationTemperature:
                     return IF97::Tsat97(Pressure);
                 case PropertyType::Density:
                     return IF97::rhomass_pQ(Pressure, Quality);
@@ -223,7 +240,7 @@ namespace XLSteam {
         }
     }
 
-    double XLSteamTX(double Temperature, double Quality, const char* PropID) {
+    inline double XLSteamTX(double Temperature, double Quality, const char* PropID) {
 
         if (Temperature < 273.16 || Temperature > IF97::get_Tcrit()) return std::nan("0");
         if (Quality < 0.0 || Quality > 1.0) return std::nan("0");
@@ -236,28 +253,33 @@ namespace XLSteam {
         }
     }
 
-    double XLSteamPH(double Pressure, double Enthalpy, const char* PropID) {
+    inline double XLSteamPH(double Pressure, double Enthalpy, const char* PropID) {
 
         if (Pressure < 0.0 || Pressure > 100000000.0) return std::nan("0");
 
         try {
             if (Pressure <= IF97::get_pcrit() &&
-                (IF97::Q_phmass(Pressure, Enthalpy) < 1.0 || IF97::Q_phmass(Pressure, Enthalpy) > 0.0))
+                IF97::Q_phmass(Pressure, Enthalpy) < 1.0 &&
+                IF97::Q_phmass(Pressure, Enthalpy) > 0.0)
                 return XLSteamPX(Pressure, IF97::Q_phmass(Pressure, Enthalpy), PropID);
-            return XLSteamPT(Pressure, IF97::T_phmass(Pressure, Enthalpy), PropID);
+
+            auto t_guess = IF97::T_phmass(Pressure, Enthalpy);
+            auto temperature = numeric::ridders([&](double t) {return XLSteamPT(Pressure, t, "H") - Enthalpy;}, t_guess * 0.99, t_guess * 1.01);
+            return XLSteamPT(Pressure, temperature, PropID);
         }
         catch(...) {
             return std::nan("0");
         }
     }
 
-    double XLSteamPS(double Pressure, double Entropy, const char* PropID) {
+    inline double XLSteamPS(double Pressure, double Entropy, const char* PropID) {
 
         if (Pressure < 0.0 || Pressure > 100000000.0) return std::nan("0");
 
         try {
             if (Pressure <= IF97::get_pcrit() &&
-                (IF97::Q_psmass(Pressure, Entropy) < 1.0 || IF97::Q_psmass(Pressure, Entropy) > 0.0))
+                IF97::Q_psmass(Pressure, Entropy) < 1.0 &&
+                IF97::Q_psmass(Pressure, Entropy) > 0.0)
                 return XLSteamPX(Pressure, IF97::Q_psmass(Pressure, Entropy), PropID);
             return XLSteamPT(Pressure, IF97::T_psmass(Pressure, Entropy), PropID);
         }

@@ -30,3 +30,5 @@ add_library(
 target_compile_options(XLSteam PRIVATE "/J" "/utf-8")
 target_link_libraries(XLSteam PRIVATE xlcall xll)
 set_target_properties(XLSteam PROPERTIES OUTPUT_NAME "XLSteam" SUFFIX ".xll")
+
+add_subdirectory(tests)
