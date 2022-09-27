@@ -294,7 +294,23 @@ namespace XLSteam {
                 IF97::Q_psmass(Pressure, Entropy) < 1.0 &&
                 IF97::Q_psmass(Pressure, Entropy) > 0.0)
                 return XLSteamPX(Pressure, IF97::Q_psmass(Pressure, Entropy), PropID);
-            return XLSteamPT(Pressure, IF97::T_psmass(Pressure, Entropy), PropID);
+
+            auto t_guess = IF97::T_psmass(Pressure, Entropy);
+
+            auto t_upper = std::invoke([&](){
+                if (Pressure <= IF97::get_pcrit())
+                    return (t_guess >= IF97::Tsat97(Pressure) ? t_guess * 1.02 : std::min(t_guess * 1.02, IF97::Tsat97(Pressure)));
+                return t_guess * 1.02;
+            });
+
+            auto t_lower = std::invoke([&](){
+                if (Pressure <= IF97::get_pcrit())
+                    return (t_guess >= IF97::Tsat97(Pressure) ? std::max(t_guess * 0.98, IF97::Tsat97(Pressure)) : t_guess * 0.98);
+                return t_guess * 0.98;
+            });
+
+            auto temperature = numeric::ridders([&](double t) {return XLSteamPT(Pressure, t, "S") - Entropy;}, t_lower, t_upper);
+            return XLSteamPT(Pressure, temperature, PropID);
         }
         catch (...) {
             return std::nan("0");
