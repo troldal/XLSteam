@@ -316,6 +316,47 @@ namespace XLSteam {
             return std::nan("0");
         }
     }
+
+    inline double XLSteamPU(double Pressure, double InternalEnergy, const char* PropID) {
+
+        if (Pressure < 0.0 || Pressure > 100000000.0) return std::nan("0");
+
+        try {
+            if (Pressure <= IF97::get_pcrit() &&
+                IF97::Q_pumass(Pressure, InternalEnergy) < 1.0 &&
+                IF97::Q_pumass(Pressure, InternalEnergy) > 0.0)
+                return XLSteamPX(Pressure, IF97::Q_pumass(Pressure, InternalEnergy), PropID);
+
+            auto t_min = 273.15;
+            auto t_max = Pressure <= 50e6 ? 2273.15 : 1073.15;
+
+            auto t_upper = std::invoke([&](){
+                if (Pressure <= IF97::get_pcrit()) {
+                    if (InternalEnergy <= XLSteamPX(Pressure, 0.0, "U")) return IF97::Tsat97(Pressure);
+                    if (InternalEnergy >= XLSteamPX(Pressure, 1.0, "U")) return t_max;
+                    return std::nan("0");
+                }
+                return t_max;
+            });
+
+            auto t_lower = std::invoke([&](){
+                if (Pressure <= IF97::get_pcrit()) {
+                    if (InternalEnergy <= XLSteamPX(Pressure, 0.0, "U")) return t_min;
+                    if (InternalEnergy >= XLSteamPX(Pressure, 1.0, "U")) return IF97::Tsat97(Pressure);
+                    return std::nan("0");
+                }
+                return t_min;
+            });
+
+            auto temperature = numeric::ridders([&](double t) {return XLSteamPT(Pressure, t, "U") - InternalEnergy;}, t_lower, t_upper);
+            return XLSteamPT(Pressure, temperature, PropID);
+
+        }
+        catch(...) {
+            return std::nan("0");
+        }
+    }
+
 }
 
 

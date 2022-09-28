@@ -14,4 +14,5 @@ target_sources(XLSteamTests
         TestXLSteamPT.cpp
         TestXLSteamPH.cpp
         TestXLSteamPS.cpp
+        TestXLSteamPU.cpp
         )

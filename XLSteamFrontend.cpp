@@ -95,6 +95,38 @@ double WINAPI XLSteam_PS(double P, double S, const char* PropID) {
     return XLSteam::XLSteamPS(P, S, PropID);
 }
 
+
+AddIn xai_XLSteam_PU(
+    Function(XLL_DOUBLE, "XLSteam_PU", "XLSTEAM.PU")
+        .Arguments({
+            Arg(XLL_DOUBLE, "P", "is the pressure in Pascal."),
+            Arg(XLL_DOUBLE, "U", "is the internal energy in J/kg"),
+            Arg(XLL_CSTRING4, "PropID", "is the ID of the property to be calculated.")
+        })
+        .FunctionHelp("Compute the properties of steam/water at the given pressure and internal energy.")
+        .Category("Engineering")
+        .HelpTopic("https://github.com/CoolProp/IF97")
+        .Documentation("The computation is done using CoolProp's implementation of the IAPWS Industrial Formulation 1997 (IF97).")
+);
+
+double WINAPI XLSteam_PU(double P, double U, const char* PropID) {
+#pragma XLLEXPORT
+    return XLSteam::XLSteamPU(P, U, PropID);
+}
+
+// PV
+// TH
+// TS
+// TU
+// TV
+
+// HS
+// HV
+// US
+// UV
+// VS
+
+
 AddIn xai_tgamma(
 	// Return double, C++ name of function, Excel name.
 	Function(XLL_DOUBLE, "xll_tgamma", "TROLDAL.TGAMMA")
