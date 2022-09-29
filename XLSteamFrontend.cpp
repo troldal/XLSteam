@@ -114,7 +114,24 @@ double WINAPI XLSteam_PU(double P, double U, const char* PropID) {
     return XLSteam::XLSteamPU(P, U, PropID);
 }
 
-// PV
+AddIn xai_XLSteam_PV(
+    Function(XLL_DOUBLE, "XLSteam_PV", "XLSTEAM.PV")
+        .Arguments({
+            Arg(XLL_DOUBLE, "P", "is the pressure in Pascal."),
+            Arg(XLL_DOUBLE, "V", "is the specific volume in m3/kg"),
+            Arg(XLL_CSTRING4, "PropID", "is the ID of the property to be calculated.")
+        })
+        .FunctionHelp("Compute the properties of steam/water at the given pressure and specific volume.")
+        .Category("Engineering")
+        .HelpTopic("https://github.com/CoolProp/IF97")
+        .Documentation("The computation is done using CoolProp's implementation of the IAPWS Industrial Formulation 1997 (IF97).")
+);
+
+double WINAPI XLSteam_PV(double P, double V, const char* PropID) {
+#pragma XLLEXPORT
+    return XLSteam::XLSteamPV(P, V, PropID);
+}
+
 // TH
 // TS
 // TU
