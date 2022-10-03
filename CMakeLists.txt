@@ -32,3 +32,5 @@ target_link_libraries(XLSteam PRIVATE xlcall xll)
 set_target_properties(XLSteam PROPERTIES OUTPUT_NAME "XLSteam" SUFFIX ".xll")
 
 add_subdirectory(tests)
+add_subdirectory(fuzz)
+add_subdirectory(demo)

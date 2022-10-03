@@ -2,19 +2,13 @@
 # Preamble
 #=======================================================================================================================
 cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
-project(XLSteam.Tests)
+project(XLSteam.Demo)
 
 #=======================================================================================================================
 # Define TEST target
 #=======================================================================================================================
-add_executable(XLSteamTests EXCLUDE_FROM_ALL "")
-target_sources(XLSteamTests
+add_executable(XLSteamDemo EXCLUDE_FROM_ALL "")
+target_sources(XLSteamDemo
         PRIVATE
-        catch_amalgamated.cpp
-        TestXLSteamPT.cpp
-        TestXLSteamPH.cpp
-        TestXLSteamPS.cpp
-        TestXLSteamPU.cpp
-        TestXLSteamPV.cpp
-        TestXLSteamTV.cpp
+        main.cpp
         )

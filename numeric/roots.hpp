@@ -9,6 +9,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <utility>
+#include <array>
 
 #include "differentiation.hpp"
 
@@ -44,7 +45,7 @@ namespace numeric {
      * @param max_iter
      * @return
      */
-    inline double ridders(const std::function<double(double)>& objective, double x1, double x2, double eps = 1.0E-6, double max_iter = 100)
+    inline double ridders(const std::function<double(double)>& objective, double x1, double x2, double eps = 1.0E-6, int max_iter = 100)
     {
         using std::abs;
         using std::pow;
@@ -65,6 +66,7 @@ namespace numeric {
                 values[2] + (values[2] - values[0]) * ((sign * objective(values[2])) /
                     sqrt(pow(objective(values[2]), 2) - objective(values[0]) * objective(values[1])));
 
+//            if (values[3] < x1 || values[3] > x2) values[3] = std::nan("0");
             if (abs(objective(values[3])) < eps) break;
 
             std::sort(values.begin(), values.end());
@@ -78,6 +80,41 @@ namespace numeric {
 
         return values[3];
     }
+
+    inline double bisection(const std::function<double(double)>& objective, double x1, double x2, double eps = 1.0E-6, int max_iter = 100) {
+
+        using std::abs;
+        using std::pow;
+        using std::sqrt;
+
+        std::array<double, 3> values {};
+
+        values[0] = x1;
+        values[2] = x2;
+
+        int counter = 0;
+
+        while (true) {
+            if (counter > max_iter) break;
+            values[1] = (values[0] + values[2]) / 2.0;
+
+            auto v0 = objective(values[0]);
+            auto v1 = objective(values[1]);
+            auto v2 = objective(values[2]);
+
+            if (abs(objective(values[1])) < eps) break;
+
+            if (objective(values[0]) * objective(values[1]) < 0.0)
+                values[2] = values[1];
+            else
+                values[0] = values[1];
+
+            ++counter;
+        }
+
+        return values[1];
+    }
+
 
     /**
      * @brief

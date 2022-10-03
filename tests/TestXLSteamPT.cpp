@@ -73,39 +73,6 @@ TEST_CASE("PT REGION 2")
     }
 }
 
-TEST_CASE("PT REGION 2 METASTABLE REGION")
-{
-    SECTION("Test Case #01")
-    {
-        REQUIRE(XLSteam::XLSteamPT(1e6, 450, "VOL") == Approx(0.192516540));
-        REQUIRE(XLSteam::XLSteamPT(1e6, 450, "H") == Approx(0.276881115e7));
-        REQUIRE(XLSteam::XLSteamPT(1e6, 450, "U") == Approx(0.257629461e7));
-        REQUIRE(XLSteam::XLSteamPT(1e6, 450, "S") == Approx(0.656660377e4));
-        REQUIRE(XLSteam::XLSteamPT(1e6, 450, "CP") == Approx(0.276349265e4));
-        REQUIRE(XLSteam::XLSteamPT(1e6, 450, "W") == Approx(0.498408101e3));
-    }
-
-    SECTION("Test Case #02")
-    {
-        REQUIRE(XLSteam::XLSteamPT(1e6, 440, "VOL") == Approx(0.186212297));
-        REQUIRE(XLSteam::XLSteamPT(1e6, 440, "H") == Approx(0.274015123e7));
-        REQUIRE(XLSteam::XLSteamPT(1e6, 440, "U") == Approx(0.255393894e7));
-        REQUIRE(XLSteam::XLSteamPT(1e6, 440, "S") == Approx(0.650218759e4));
-        REQUIRE(XLSteam::XLSteamPT(1e6, 440, "CP") == Approx(0.298166443e4));
-        REQUIRE(XLSteam::XLSteamPT(1e6, 440, "W") == Approx(0.489363295e3));
-    }
-
-    SECTION("Test Case #03")
-    {
-        REQUIRE(XLSteam::XLSteamPT(1.5e6, 450, "VOL") == Approx(0.121685206));
-        REQUIRE(XLSteam::XLSteamPT(1.5e6, 450, "H") == Approx(0.272134539e7));
-        REQUIRE(XLSteam::XLSteamPT(1.5e6, 450, "U") == Approx(0.253881758e7));
-        REQUIRE(XLSteam::XLSteamPT(1.5e6, 450, "S") == Approx(0.629170440e4));
-        REQUIRE(XLSteam::XLSteamPT(1.5e6, 450, "CP") == Approx(0.362795578e4));
-        REQUIRE(XLSteam::XLSteamPT(1.5e6, 450, "W") == Approx(0.481941819e3));
-    }
-}
-
 TEST_CASE("PT REGION 3")
 {
     SECTION("Test Case #01")
