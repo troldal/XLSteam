@@ -413,9 +413,9 @@ namespace XLSteam {
 
             if (Volume < v_liq) {
                 auto temperature = numeric::ridders([&](double t) { return XLSteamPT(Pressure, t, "VOL") - Volume; },
-                                                      (std::max(273.15,-2.0494E-7*Pressure + 2.77135E2)), // This expression calculates the temperature at which the liquid volume is the lowest
+                                                      (std::max(273.15,-2.0494E-7*Pressure + 2.7715E2)), // This expression calculates the temperature at which the liquid volume is the lowest
                                                       IF97::Tsat97(Pressure),
-                                                      1.0E-12);
+                                                      1.0E-15);
                 return XLSteamPT(Pressure, temperature, PropID);
             }
 
@@ -468,7 +468,7 @@ namespace XLSteam {
                 auto pressure = numeric::ridders([&](double p) { return XLSteamPT(p, Temperature, "VOL") - Volume; },
                                                  IF97::psat97(Temperature) + 1.0, // Required to ensure we are outside saturation line.
                                                  p_upper,
-                                                 1.0E-12);
+                                                 1.0E-15);
                 return XLSteamPT(pressure, Temperature, PropID);
             }
             return std::nan("0");
