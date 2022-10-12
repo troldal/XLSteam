@@ -83,6 +83,13 @@ std::string test(double pressure, double temperature) {
     if (std::isnan(XLSteam::XLSteamTV(T, V, "U")) || !Approx(XLSteam::XLSteamTV(T, V, "U"), U)) return "TV-U";
     if (std::isnan(XLSteam::XLSteamTV(T, V, "V")) || !Approx(XLSteam::XLSteamTV(T, V, "V"), V)) return "TV-V";
 
+//    if (std::isnan(XLSteam::XLSteamUV(U, V, "P")) || !Approx(XLSteam::XLSteamUV(U, V, "P"), P)) return "UV-P";
+//    if (std::isnan(XLSteam::XLSteamUV(U, V, "T")) || !Approx(XLSteam::XLSteamUV(U, V, "T"), T)) return "UV-T";
+//    if (std::isnan(XLSteam::XLSteamUV(U, V, "H")) || !Approx(XLSteam::XLSteamUV(U, V, "H"), H)) return "UV-H";
+//    if (std::isnan(XLSteam::XLSteamUV(U, V, "S")) || !Approx(XLSteam::XLSteamUV(U, V, "S"), S)) return "UV-S";
+//    if (std::isnan(XLSteam::XLSteamUV(U, V, "U")) || !Approx(XLSteam::XLSteamUV(U, V, "U"), U)) return "UV-U";
+//    if (std::isnan(XLSteam::XLSteamUV(U, V, "V")) || !Approx(XLSteam::XLSteamUV(U, V, "V"), V)) return "UV-V";
+
     return "";
 }
 
@@ -92,7 +99,7 @@ int main() {
         auto pt = generate_pt();
         auto result = test(pt.first, pt.second);
         if (!result.empty()) {
-            std::cout << result << "\t" << "P = " << pt.first << "\tT = " << pt.second << std::endl;
+            std::cout << "TEST # " << i << ": " << result << "\t" << "P = " << pt.first << "\tT = " << pt.second << "\n";
         }
     }
 

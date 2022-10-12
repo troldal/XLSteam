@@ -17,4 +17,5 @@ target_sources(XLSteamTests
         TestXLSteamPU.cpp
         TestXLSteamPV.cpp
         TestXLSteamTV.cpp
+#        TestXLSteamUV.cpp
         )

@@ -12,3 +12,11 @@ target_sources(XLSteamDemo
         PRIVATE
         main.cpp
         )
+
+# Define TEST target
+#=======================================================================================================================
+add_executable(NumDemo EXCLUDE_FROM_ALL "")
+target_sources(NumDemo
+        PRIVATE
+        num.cpp
+        )

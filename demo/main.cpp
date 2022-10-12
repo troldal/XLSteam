@@ -8,9 +8,9 @@
 int main() {
 
 
-    auto P = XLSteam::XLSteamPT(6.14027e+06, 276.282, "P");
-    auto V = XLSteam::XLSteamPT(6.14027e+06, 276.282, "V");
+    auto U = XLSteam::XLSteamPT(1.82824e+06, 440.277, "U");
+    auto V = XLSteam::XLSteamPT(1.82824e+06, 440.277, "V");
 
-    std::cout << XLSteam::XLSteamPV(P, V, "T") << std::endl;
+    std::cout << XLSteam::XLSteamUV(U, V, "P") << std::endl;
     return 0;
 }

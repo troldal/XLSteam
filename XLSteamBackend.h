@@ -5,9 +5,9 @@
 #ifndef XLSTEAM_XLSTEAMBACKEND_H
 #define XLSTEAM_XLSTEAMBACKEND_H
 
-#include <limits>
 #include "IF97.h"
-#include "numeric/roots.hpp"
+#include "numeric/roots/roots.hpp"
+#include <limits>
 
 namespace XLSteam {
 
@@ -256,6 +256,8 @@ namespace XLSteam {
 
     inline double XLSteamPH(double Pressure, double Enthalpy, const char* PropID) {
 
+        using namespace numerix::roots;
+
         if (Pressure < 0.0 || Pressure > 100000000.0) return std::nan("0");
 
         try {
@@ -263,7 +265,7 @@ namespace XLSteam {
                 auto t_lower = 273.15;
                 auto t_upper = Pressure > 50E6 ? 1073.15 : 2273.15;
                 auto temperature =
-                    numeric::ridders([&](double t) { return XLSteamPT(Pressure, t, "H") - Enthalpy; }, t_lower, t_upper, 1.0E-9);
+                    fsolve(bisection([&](double t) { return XLSteamPT(Pressure, t, "H") - Enthalpy; }), std::make_pair(t_lower, t_upper), 1.0E-15);
                 return XLSteamPT(Pressure, temperature, PropID);
             }
 
@@ -272,24 +274,22 @@ namespace XLSteam {
 
             if (Enthalpy >= h_liq && Enthalpy <= h_vap) {
                 auto quality =
-                    numeric::ridders([&](double x) { return XLSteamPX(Pressure, x, "H") - Enthalpy; }, 0.0, 1.0, 1.0E-9);
+                    fsolve(bisection([&](double x) { return XLSteamPX(Pressure, x, "H") - Enthalpy; }), std::make_pair(0.0, 1.0), 1.0E-15);
                 return XLSteamPX(Pressure, quality, PropID);
             }
 
             if (Enthalpy < h_liq) {
-                auto temperature = numeric::ridders([&](double t) { return XLSteamPT(Pressure, t, "H") - Enthalpy; },
-                                                    273.15,
-                                                    IF97::Tsat97(Pressure),
-                                                    1.0E-9);
+                auto temperature = fsolve(bisection([&](double t) { return XLSteamPT(Pressure, t, "H") - Enthalpy; }),
+                                                    std::make_pair(273.15, IF97::Tsat97(Pressure)),
+                                                    1.0E-15);
                 return XLSteamPT(Pressure, temperature, PropID);
             }
 
             if (Enthalpy > h_vap) {
                 auto t_upper  = Pressure > 50E6 ? 1073.15 : 2273.15;
-                auto temperature = numeric::ridders([&](double t) { return XLSteamPT(Pressure, t, "H") - Enthalpy; },
-                                                    IF97::Tsat97(Pressure),
-                                                    t_upper,
-                                                    1.0E-9);
+                auto temperature = fsolve(bisection([&](double t) { return XLSteamPT(Pressure, t, "H") - Enthalpy; }),
+                                                    std::make_pair(IF97::Tsat97(Pressure), t_upper),
+                                                    1.0E-15);
                 return XLSteamPT(Pressure, temperature, PropID);
             }
             return std::nan("0");
@@ -301,6 +301,8 @@ namespace XLSteam {
 
     inline double XLSteamPS(double Pressure, double Entropy, const char* PropID) {
 
+        using namespace numerix::roots;
+
         if (Pressure < 0.0 || Pressure > 100E6) return std::nan("0");
 
         try {
@@ -308,7 +310,7 @@ namespace XLSteam {
                 auto t_lower = 273.15;
                 auto t_upper = Pressure > 50E6 ? 1073.15 : 2273.15;
                 auto temperature =
-                    numeric::ridders([&](double t) { return XLSteamPT(Pressure, t, "S") - Entropy; }, t_lower, t_upper, 1.0E-9);
+                    fsolve(bisection([&](double t) { return XLSteamPT(Pressure, t, "S") - Entropy; }), std::make_pair(t_lower, t_upper), 1.0E-15);
                 return XLSteamPT(Pressure, temperature, PropID);
             }
 
@@ -317,24 +319,22 @@ namespace XLSteam {
 
             if (Entropy >= s_liq && Entropy <= s_vap) {
                 auto quality =
-                    numeric::ridders([&](double x) { return XLSteamPX(Pressure, x, "S") - Entropy; }, 0.0, 1.0, 1.0E-9);
+                    fsolve(bisection([&](double x) { return XLSteamPX(Pressure, x, "S") - Entropy; }), std::make_pair(0.0, 1.0), 1.0E-15);
                 return XLSteamPX(Pressure, quality, PropID);
             }
 
             if (Entropy < s_liq) {
-                auto temperature = numeric::ridders([&](double t) { return XLSteamPT(Pressure, t, "S") - Entropy; },
-                                                    273.15,
-                                                    IF97::Tsat97(Pressure),
-                                                    1.0E-9);
+                auto temperature = fsolve(bisection([&](double t) { return XLSteamPT(Pressure, t, "S") - Entropy; }),
+                                                    std::make_pair(273.15, IF97::Tsat97(Pressure)),
+                                                    1.0E-15);
                 return XLSteamPT(Pressure, temperature, PropID);
             }
 
             if (Entropy > s_vap) {
                 auto t_upper  = Pressure > 50E6 ? 1073.15 : 2273.15;
-                auto temperature = numeric::ridders([&](double t) { return XLSteamPT(Pressure, t, "S") - Entropy; },
-                                                    IF97::Tsat97(Pressure),
-                                                    t_upper,
-                                                    1.0E-9);
+                auto temperature = fsolve(bisection([&](double t) { return XLSteamPT(Pressure, t, "S") - Entropy; }),
+                                                    std::make_pair(IF97::Tsat97(Pressure), t_upper),
+                                                    1.0E-15);
                 return XLSteamPT(Pressure, temperature, PropID);
             }
             return std::nan("0");
@@ -346,6 +346,8 @@ namespace XLSteam {
 
     inline double XLSteamPU(double Pressure, double InternalEnergy, const char* PropID) {
 
+        using namespace numerix::roots;
+
         if (Pressure < 0.0 || Pressure > 100E6) return std::nan("0");
 
         try {
@@ -353,7 +355,7 @@ namespace XLSteam {
                 auto t_lower = 273.15;
                 auto t_upper = Pressure > 50E6 ? 1073.15 : 2273.15;
                 auto temperature =
-                    numeric::ridders([&](double t) { return XLSteamPT(Pressure, t, "U") - InternalEnergy; }, t_lower, t_upper, 1.0E-9);
+                    fsolve(bisection([&](double t) { return XLSteamPT(Pressure, t, "U") - InternalEnergy; }), std::make_pair(t_lower, t_upper), 1.0E-15);
                 return XLSteamPT(Pressure, temperature, PropID);
             }
 
@@ -362,24 +364,22 @@ namespace XLSteam {
 
             if (InternalEnergy >= u_liq && InternalEnergy <= u_vap) {
                 auto quality =
-                    numeric::ridders([&](double x) { return XLSteamPX(Pressure, x, "U") - InternalEnergy; }, 0.0, 1.0, 1.0E-9);
+                    fsolve(bisection([&](double x) { return XLSteamPX(Pressure, x, "U") - InternalEnergy; }), std::make_pair(0.0, 1.0), 1.0E-15);
                 return XLSteamPX(Pressure, quality, PropID);
             }
 
             if (InternalEnergy < u_liq) {
-                auto temperature = numeric::ridders([&](double t) { return XLSteamPT(Pressure, t, "U") - InternalEnergy; },
-                                                    273.15,
-                                                    IF97::Tsat97(Pressure),
-                                                    1.0E-9);
+                auto temperature = fsolve(bisection([&](double t) { return XLSteamPT(Pressure, t, "U") - InternalEnergy; }),
+                                                    std::make_pair(273.15, IF97::Tsat97(Pressure)),
+                                                    1.0E-15);
                 return XLSteamPT(Pressure, temperature, PropID);
             }
 
             if (InternalEnergy > u_vap) {
                 auto t_upper  = Pressure > 50E6 ? 1073.15 : 2273.15;
-                auto temperature = numeric::ridders([&](double t) { return XLSteamPT(Pressure, t, "U") - InternalEnergy; },
-                                                    IF97::Tsat97(Pressure),
-                                                    t_upper,
-                                                    1.0E-9);
+                auto temperature = fsolve(bisection([&](double t) { return XLSteamPT(Pressure, t, "U") - InternalEnergy; }),
+                                                    std::make_pair(IF97::Tsat97(Pressure), t_upper),
+                                                    1.0E-15);
                 return XLSteamPT(Pressure, temperature, PropID);
             }
             return std::nan("0");
@@ -391,6 +391,8 @@ namespace XLSteam {
 
     inline double XLSteamPV(double Pressure, double Volume, const char* PropID) {
 
+        using namespace numerix::roots;
+
         if (Pressure < 0.0 || Pressure > 100e6) return std::nan("0");
 
         try {
@@ -398,7 +400,7 @@ namespace XLSteam {
                 auto t_lower = 273.15;
                 auto t_upper = Pressure > 50E6 ? 1073.15 : 2273.15;
                 auto temperature =
-                    numeric::ridders([&](double t) { return XLSteamPT(Pressure, t, "VOL") - Volume; }, t_lower, t_upper, 1.0E-12);
+                    fsolve(bisection([&](double t) { return XLSteamPT(Pressure, t, "VOL") - Volume; }), std::make_pair(t_lower, t_upper), 1.0E-15);
                 return XLSteamPT(Pressure, temperature, PropID);
             }
 
@@ -407,24 +409,23 @@ namespace XLSteam {
 
             if (Volume >= v_liq && Volume <= v_vap) {
                 auto quality =
-                    numeric::ridders([&](double x) { return XLSteamPX(Pressure, x, "VOL") - Volume; }, 0.0, 1.0, 1.0E-12);
+                    fsolve(bisection([&](double x) { return XLSteamPX(Pressure, x, "VOL") - Volume; }), std::make_pair(0.0, 1.0), 1.0E-15);
                 return XLSteamPX(Pressure, quality, PropID);
             }
 
             if (Volume < v_liq) {
-                auto temperature = numeric::ridders([&](double t) { return XLSteamPT(Pressure, t, "VOL") - Volume; },
-                                                      (std::max(273.15,-2.0494E-7*Pressure + 2.7715E2)), // This expression calculates the temperature at which the liquid volume is the lowest
-                                                      IF97::Tsat97(Pressure),
+                auto temperature = fsolve(bisection([&](double t) { return XLSteamPT(Pressure, t, "VOL") - Volume; }),
+                                                      std::make_pair((std::max(273.15,-2.0494E-7*Pressure + 2.7715E2)), // This expression calculates the temperature at which the liquid volume is the lowest
+                                                      IF97::Tsat97(Pressure)),
                                                       1.0E-15);
                 return XLSteamPT(Pressure, temperature, PropID);
             }
 
             if (Volume > v_vap) {
                 auto t_upper  = Pressure > 50E6 ? 1073.15 : 2273.15;
-                auto temperature = numeric::ridders([&](double t) { return XLSteamPT(Pressure, t, "VOL") - Volume; },
-                                                 IF97::Tsat97(Pressure),
-                                                 t_upper,
-                                                 1.0E-12);
+                auto temperature = fsolve(bisection([&](double t) { return XLSteamPT(Pressure, t, "VOL") - Volume; }),
+                                                 std::make_pair(IF97::Tsat97(Pressure), t_upper),
+                                                 1.0E-15);
                 return XLSteamPT(Pressure, temperature, PropID);
             }
             return std::nan("0");
@@ -435,6 +436,9 @@ namespace XLSteam {
     }
 
     inline double XLSteamTV(double Temperature, double Volume, const char* PropID) {
+
+        using namespace numerix::roots;
+
         if (Temperature < 273.15 || Temperature > 2273.15) return std::nan("0");
 
         try {
@@ -442,7 +446,7 @@ namespace XLSteam {
                 auto p_lower = 0.0;
                 auto p_upper = Temperature > 1073.15 ? 50E6 : 100E6;
                 auto pressure =
-                    numeric::ridders([&](double p) { return XLSteamPT(p, Temperature, "VOL") - Volume; }, p_lower, p_upper, 1.0E-12);
+                    fsolve(bisection([&](double p) { return XLSteamPT(p, Temperature, "VOL") - Volume; }), std::make_pair(p_lower, p_upper), 1.0E-15);
                 return XLSteamPT(pressure, Temperature, PropID);
             }
 
@@ -451,23 +455,23 @@ namespace XLSteam {
 
             if (Volume >= v_liq && Volume <= v_vap) {
                 auto quality =
-                    numeric::ridders([&](double x) { return XLSteamTX(Temperature, x, "VOL") - Volume; }, 0.0, 1.0, 1.0E-12);
+                    fsolve(bisection([&](double x) { return XLSteamTX(Temperature, x, "VOL") - Volume; }), std::make_pair(0.0, 1.0), 1.0E-15);
                 return XLSteamTX(Temperature, quality, PropID);
             }
 
             if (Volume > v_vap) {
-                auto pressure = numeric::ridders([&](double p) { return XLSteamPT(p, Temperature, "VOL") - Volume; },
-                                                 1000.0,
-                                                 IF97::psat97(Temperature) - 1.0, // Required to ensure we are outside saturation line.
-                                                 1.0E-12);
+                auto pressure = fsolve(bisection([&](double p) { return XLSteamPT(p, Temperature, "VOL") - Volume; }),
+                                                 std::make_pair(1000.0,
+                                                 IF97::psat97(Temperature) - 1.0), // Required to ensure we are outside saturation line.
+                                                 1.0E-15);
                 return XLSteamPT(pressure, Temperature, PropID);
             }
 
             if (Volume < v_liq) {
                 auto p_upper  = Temperature > 1073.15 ? 50E6 : 100E6;
-                auto pressure = numeric::ridders([&](double p) { return XLSteamPT(p, Temperature, "VOL") - Volume; },
-                                                 IF97::psat97(Temperature) + 1.0, // Required to ensure we are outside saturation line.
-                                                 p_upper,
+                auto pressure = fsolve(bisection([&](double p) { return XLSteamPT(p, Temperature, "VOL") - Volume; }),
+                                                 std::make_pair(IF97::psat97(Temperature) + 1.0, // Required to ensure we are outside saturation line.
+                                                 p_upper),
                                                  1.0E-15);
                 return XLSteamPT(pressure, Temperature, PropID);
             }
@@ -476,6 +480,17 @@ namespace XLSteam {
         catch (...) {
             return std::nan("0");
         }
+    }
+
+    inline double XLSteamUV(double InternalEnergy, double Volume, const char* PropID) {
+
+        using namespace numerix::roots;
+
+        //auto temperature =  numeric::bisection([&](double t) { return XLSteamTV(t, Volume, "U") - InternalEnergy; }, 273.15, 2273.15, 1.0E-15);
+        //return XLSteamTV(temperature, Volume, PropID);
+
+        auto pressure =  fsolve(bisection([&](double p) { return XLSteamPV(p, Volume, "U") - InternalEnergy; }), std::make_pair(0.0, 100E6), 1.0E-15);
+        return XLSteamPV(pressure, Volume, PropID);
     }
 
 }
