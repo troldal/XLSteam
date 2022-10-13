@@ -94,7 +94,7 @@ namespace numerix::roots
     requires std::is_floating_point_v<T1> && std::is_floating_point_v<T2> && std::is_floating_point_v<T3>
     inline auto fsolve(S solver, std::pair<T1, T2> bounds, T3 eps = 1.0E-6, int maxiter = 100) {
 
-        using RT = decltype(solver.get_bounds().first);
+        using RT = decltype(solver.result().first);
 
         solver.init(bounds);
         RT result;
@@ -102,8 +102,8 @@ namespace numerix::roots
         int iter = 1;
         while (true) {
 
-            result = (solver.get_bounds().first + solver.get_bounds().second) / 2.0;
-            if (abs(solver.get_bounds().first - solver.get_bounds().second) < eps || abs(solver.evaluate(result)) < eps) break;
+            result = (solver.result().first + solver.result().second) / 2.0;
+            if (abs(solver.result().first - solver.result().second) < eps || abs(solver.evaluate(result)) < eps) break;
             solver.iterate();
 
             ++iter;
@@ -165,28 +165,13 @@ namespace numerix::roots
 
         /**
          * @brief
-         * @tparam T1
-         * @tparam T2
-         * @param bounds
-         * @return
-         */
-        template<typename T1, typename T2>
-        requires std::is_floating_point_v<T1> && std::is_floating_point_v<T2>
-        auto iterate(std::pair<T1, T2> bounds) {
-            assert(bounds.first < bounds.second);
-            assert(evaluate(bounds.first) * evaluate(bounds.second) < 0.0);
-            return static_cast<Algo*>(this)->iterate(bounds);
-        }
-
-        /**
-         * @brief
          * @return
          */
         void iterate() {
             return static_cast<Algo*>(this)->iterate();
         }
 
-        const auto& get_bounds() const {
+        const auto& result() const {
             return m_bounds;
         }
     };
@@ -318,24 +303,180 @@ namespace numerix::roots
 
     /**
      * @brief
-     * @param func
-     * @param x
+     * @tparam S
+     * @tparam T1
+     * @tparam T2
+     * @param solver
+     * @param guess
      * @param eps
      * @param maxiter
      * @return
      */
-    inline double newton(const std::function<double(double)>& func, double x, double eps = 1E-6, int maxiter = 20)
-    {
-        using std::abs;
-        int counter = 0;
+    template<typename S, typename T1, typename T2>
+    requires std::is_floating_point_v<T1> && std::is_floating_point_v<T2>
+    inline auto fdfsolve(S solver, T1 guess, T2 eps = 1.0E-6, int maxiter = 100) {
+
+        using RT = decltype(solver.result());
+
+        solver.init(guess);
+
+        int iter = 1;
         while (true) {
-            double x1 = x - (func(x) / numeric::diff_central(func, x));
-            if (abs(x - x1) < eps) return x1;
-            if (counter > maxiter) return static_cast<double>(NAN);
-            x = x1;
-            ++counter;
+
+            if (abs(solver.evaluate(solver.result())) < eps) break;
+            solver.iterate();
+
+            ++iter;
+            if (iter > maxiter) break;
         }
+
+        return solver.result();
     }
+
+    /**
+     * @brief
+     * @tparam Algo
+     * @tparam Fn
+     * @tparam DFn
+     */
+    template<typename Algo, typename Fn, typename DFn>
+    requires std::is_invocable_v<Fn, float> && std::is_invocable_v<DFn, float>
+    class PolishingBase {
+
+    private:
+
+        Fn m_func {};
+        DFn m_deriv {};
+
+    protected:
+
+        using RT = decltype(m_func(0.0));
+        RT m_guess;
+
+        /**
+         * @brief
+         * @param objective
+         * @param derivative
+         */
+        explicit PolishingBase(Fn objective, DFn derivative) : m_func{ objective },
+                                                               m_deriv { derivative }
+        {}
+
+    public:
+
+        /**
+         * @brief
+         * @tparam T
+         * @param guess
+         */
+        template<typename T>
+        requires std::is_floating_point_v<T>
+        void init(T guess) {
+            m_guess = guess;
+        }
+
+        /**
+         * @brief
+         * @tparam T
+         * @param value
+         * @return
+         */
+        template<typename T>
+        requires std::is_floating_point_v<T>
+        auto evaluate(T value) {
+            return m_func(value);
+        }
+
+        /**
+         * @brief
+         * @tparam T
+         * @param value
+         * @return
+         */
+        template<typename T>
+        requires std::is_floating_point_v<T>
+        auto derivative(T value) {
+            return m_deriv(value);
+        }
+
+        /**
+         * @brief
+         * @return
+         */
+        void iterate() {
+            return static_cast<Algo*>(this)->iterate();
+        }
+
+        /**
+         * @brief
+         * @return
+         */
+        const auto& result() const {
+            return m_guess;
+        }
+    };
+
+    /**
+     * @brief
+     * @tparam Fn
+     * @tparam DFn
+     */
+    template<typename Fn, typename DFn>
+    requires std::is_invocable_v<Fn, float>
+    class dnewton final : public PolishingBase<dnewton<Fn, DFn>, Fn, DFn>
+    {
+        using Base = PolishingBase<dnewton<Fn, DFn>, Fn, DFn>;
+
+    public:
+
+        /**
+         * @brief
+         * @param objective
+         */
+        explicit dnewton(Fn objective) : Base(objective, [=](double x){return numeric::diff_central(objective, x);}){}
+
+        /**
+         * @brief
+         */
+        void iterate() {
+
+            Base::m_guess = Base::m_guess - Base::evaluate(Base::m_guess) / Base::derivative(Base::m_guess);
+        }
+    };
+
+    /**
+     * @brief Deduction guide for the dnewton algorithm
+     */
+    template<typename Fn> dnewton(Fn objective) -> dnewton<Fn, std::function<decltype(objective(0.0))(decltype(objective(0.0)))>>;
+
+    /**
+     * @brief
+     * @tparam Fn
+     * @tparam DFn
+     */
+    template<typename Fn, typename DFn>
+    requires std::is_invocable_v<Fn, float>
+    class newton final : public PolishingBase<dnewton<Fn, DFn>, Fn, DFn>
+    {
+        using Base = PolishingBase<dnewton<Fn, DFn>, Fn, DFn>;
+
+    public:
+
+        /**
+         * @brief
+         * @param objective
+         * @param deriv
+         */
+        explicit newton(Fn objective, DFn deriv) : Base(objective, deriv){}
+
+        /**
+         * @brief
+         */
+        void iterate() {
+            Base::m_guess = Base::m_guess - Base::evaluate(Base::m_guess) / Base::derivative(Base::m_guess);
+        }
+    };
+
 
 }    // namespace numerix
 
